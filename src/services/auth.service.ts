@@ -145,19 +145,14 @@ export const getCurrentUser = async (username: string) => {
 };
 
 export const updateUser = async (userPayload: any, loggedInUsername: string) => {
-  const { email, username, password, image, bio } = userPayload;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { username, bio } = userPayload;
 
   const user = await prisma.user.update({
     where: {
       username: loggedInUsername,
     },
     data: {
-      ...(email ? { email } : {}),
       ...(username ? { username } : {}),
-      ...(password ? { password: hashedPassword } : {}),
-      ...(image ? { image } : {}),
       ...(bio ? { bio } : {}),
     },
     select: {
@@ -277,4 +272,28 @@ export const findUserIdByUsername = async (username: string) => {
   }
 
   return user;
+};
+
+export const deleteUser = async (loggedInUsername: string) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username: loggedInUsername },
+    });
+
+    if (!user) {
+      throw new HttpException(404, { errors: { user: ['User not found'] } });
+    }
+
+    // 사용자 삭제
+    await prisma.user.delete({
+      where: { username: loggedInUsername },
+    });
+
+    return { message: 'User successfully deleted' };
+  } catch (error) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new HttpException(500, { errors: { server: ['An unexpected error occurred'] } });
+  }
 };

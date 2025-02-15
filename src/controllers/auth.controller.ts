@@ -1,6 +1,14 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import auth from '../utils/auth';
-import { createUser, getCurrentUser, login, updateUser } from '../services/auth.service';
+import {
+  createUser,
+  deleteUser,
+  getCurrentUser,
+  login,
+  updateImage,
+  updatePassword,
+  updateUser,
+} from '../services/auth.service';
 
 const router = Router();
 
@@ -62,6 +70,61 @@ router.put('/user', auth.required, async (req: Request, res: Response, next: Nex
   try {
     const user = await updateUser(req.body.user, req.user?.username as string);
     res.json({ user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Update user image
+ * @auth required
+ * @route {PUT} /user/image
+ * @bodyparam user User
+ * @returns user User
+ */
+router.put(
+  '/user/image',
+  auth.required,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await updateImage(req.body.user, req.user?.username as string);
+      res.json({ user });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * Update user password
+ * @auth required
+ * @route {PUT} /user/password
+ * @bodyparam user User
+ * @returns user User
+ */
+router.put(
+  '/user/password',
+  auth.required,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await updatePassword(req.body.user, req.user?.username as string);
+      res.json({ user });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * Delete user account
+ * @auth required
+ * @route {DELETE} /user
+ * @returns message string
+ */
+router.delete('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await deleteUser(req.user?.username as string);
+    res.json(result);
   } catch (error) {
     next(error);
   }
