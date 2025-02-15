@@ -45,7 +45,7 @@ model User {
   email      String    @unique
   username   String    @unique
   password   String
-  image      String?   @default("https://api.realworld.io/images/smiley-cyrus.jpeg")
+  image      String?   
   bio        String?
   articles   Article[] @relation("UserArticles")
   favorites  Article[] @relation("UserFavorites") // references 제거
