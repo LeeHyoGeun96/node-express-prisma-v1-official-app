@@ -4,6 +4,7 @@ class HttpException extends Error {
   constructor(errorCode: number, public readonly message: string | any) {
     super(message);
     this.errorCode = errorCode;
+    this.name = 'HttpException';
   }
 }
 
