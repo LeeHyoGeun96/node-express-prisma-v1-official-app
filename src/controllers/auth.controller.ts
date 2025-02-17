@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import auth from '../utils/auth';
 import {
   createUser,
+  deleteImage,
   deleteUser,
   getCurrentUser,
   login,
@@ -9,6 +10,7 @@ import {
   updatePassword,
   updateUser,
 } from '../services/auth.service';
+import HttpException from '../models/http-exception.model';
 
 const router = Router();
 
@@ -52,7 +54,12 @@ router.post('/users/login', async (req: Request, res: Response, next: NextFuncti
  */
 router.get('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await getCurrentUser(req.user?.username as string);
+    const userId = req.user?.id; // 토큰에서 id를 사용
+    if (!userId) {
+      throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+    }
+
+    const user = await getCurrentUser(userId);
     res.json({ user });
   } catch (error) {
     next(error);
@@ -68,7 +75,12 @@ router.get('/user', auth.required, async (req: Request, res: Response, next: Nex
  */
 router.put('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await updateUser(req.body.user, req.user?.username as string);
+    const userId = req.user?.id; // 토큰에서 id를 사용
+    if (!userId) {
+      throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+    }
+
+    const user = await updateUser(req.body.user, userId);
     res.json({ user });
   } catch (error) {
     next(error);
@@ -86,9 +98,38 @@ router.put(
   '/user/image',
   auth.required,
   async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id; // 토큰에서 id를 사용
+    if (!userId) {
+      throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+    }
+
     try {
-      const user = await updateImage(req.body.user, req.user?.username as string);
+      const user = await updateImage(req.body.user, userId);
       res.json({ user });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * delete user Image
+ * @auth required
+ * @route {DELETE} /user/image
+ * @returns message string
+ */
+router.delete(
+  '/user/image',
+  auth.required,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id; // 토큰에서 id를 사용
+      if (!userId) {
+        throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+      }
+
+      const result = await deleteImage(userId);
+      res.json(result);
     } catch (error) {
       next(error);
     }
@@ -106,8 +147,13 @@ router.put(
   '/user/password',
   auth.required,
   async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id; // 토큰에서 id를 사용
+    if (!userId) {
+      throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+    }
+
     try {
-      const user = await updatePassword(req.body.user, req.user?.username as string);
+      const user = await updatePassword(req.body.user, userId);
       res.json({ user });
     } catch (error) {
       next(error);
@@ -123,7 +169,12 @@ router.put(
  */
 router.delete('/user', auth.required, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await deleteUser(req.user?.username as string);
+    const userId = req.user?.id; // 토큰에서 id를 사용
+    if (!userId) {
+      throw new HttpException(401, { error: { auth: ['Invalid token'] } });
+    }
+
+    const result = await deleteUser(userId);
     res.json(result);
   } catch (error) {
     next(error);

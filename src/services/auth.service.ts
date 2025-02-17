@@ -125,10 +125,10 @@ export const login = async (userPayload: any) => {
   });
 };
 
-export const getCurrentUser = async (username: string) => {
+export const getCurrentUser = async (id: number) => {
   const user = (await prisma.user.findUnique({
     where: {
-      username,
+      id,
     },
     select: {
       email: true,
@@ -144,12 +144,12 @@ export const getCurrentUser = async (username: string) => {
   };
 };
 
-export const updateUser = async (userPayload: any, loggedInUsername: string) => {
+export const updateUser = async (userPayload: any, loggedInId: number) => {
   const { username, bio } = userPayload;
 
   const user = await prisma.user.update({
     where: {
-      username: loggedInUsername,
+      id: +loggedInId,
     },
     data: {
       ...(username ? { username } : {}),
@@ -169,7 +169,7 @@ export const updateUser = async (userPayload: any, loggedInUsername: string) => 
   };
 };
 
-export const updatePassword = async (userPayload: any, loggedInUsername: string) => {
+export const updatePassword = async (userPayload: any, loggedInId: number) => {
   const { inputCurrentPassword, password } = userPayload;
 
   // 입력값 검증
@@ -186,50 +186,43 @@ export const updatePassword = async (userPayload: any, loggedInUsername: string)
     });
   }
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { username: loggedInUsername },
-      select: { password: true },
-    });
+  const user = await prisma.user.findUnique({
+    where: { id: loggedInId },
+    select: { password: true },
+  });
 
-    // 사용자 존재 여부 확인
-    if (!user) {
-      throw new HttpException(404, { error: { user: ['User not found'] } });
-    }
-
-    const match = await bcrypt.compare(inputCurrentPassword, user.password);
-
-    if (!match) {
-      throw new HttpException(403, { error: { 'current password': ['is invalid'] } });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const updatedUser = await prisma.user.update({
-      where: { username: loggedInUsername },
-      data: { password: hashedPassword },
-      select: {
-        email: true,
-        username: true,
-        bio: true,
-        image: true,
-      },
-    });
-
-    return {
-      ...updatedUser,
-      token: generateToken(updatedUser),
-    };
-  } catch (error) {
-    // Prisma 또는 기타 예상치 못한 오류 처리
-    if (error instanceof HttpException) {
-      throw error;
-    }
-    throw new HttpException(500, { error: { server: ['An unexpected error occurred'] } });
+  // 사용자 존재 여부 확인
+  if (!user) {
+    throw new HttpException(404, { error: { user: ['User not found'] } });
   }
+
+  const match = await bcrypt.compare(inputCurrentPassword, user.password);
+
+  if (!match) {
+    throw new HttpException(403, { error: { 'current password': ['is invalid'] } });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const updatedUser = await prisma.user.update({
+    where: { id: loggedInId },
+    data: { password: hashedPassword },
+    select: {
+      email: true,
+      username: true,
+      bio: true,
+      image: true,
+      id: true,
+    },
+  });
+
+  return {
+    ...updatedUser,
+    token: generateToken(updatedUser),
+  };
 };
 
-export const updateImage = async (userPayload: any, loggedInUsername: string) => {
+export const updateImage = async (userPayload: any, loggedInId: number) => {
   const { image } = userPayload;
 
   if (!image) {
@@ -238,7 +231,7 @@ export const updateImage = async (userPayload: any, loggedInUsername: string) =>
 
   const user = await prisma.user.update({
     where: {
-      username: loggedInUsername,
+      id: loggedInId,
     },
     data: {
       ...(image ? { image } : {}),
@@ -248,6 +241,26 @@ export const updateImage = async (userPayload: any, loggedInUsername: string) =>
       username: true,
       bio: true,
       image: true,
+      id: true,
+    },
+  });
+
+  return {
+    ...user,
+    token: generateToken(user),
+  };
+};
+
+export const deleteImage = async (loggedInId: number) => {
+  const user = await prisma.user.update({
+    where: { id: loggedInId },
+    data: { image: null },
+    select: {
+      email: true,
+      username: true,
+      bio: true,
+      image: true,
+      id: true,
     },
   });
 
@@ -274,10 +287,10 @@ export const findUserIdByUsername = async (username: string) => {
   return user;
 };
 
-export const deleteUser = async (loggedInUsername: string) => {
+export const deleteUser = async (loggedInId: number) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { username: loggedInUsername },
+      where: { id: loggedInId },
     });
 
     if (!user) {
@@ -286,7 +299,7 @@ export const deleteUser = async (loggedInUsername: string) => {
 
     // 사용자 삭제
     await prisma.user.delete({
-      where: { username: loggedInUsername },
+      where: { id: loggedInId },
     });
 
     return { message: 'User successfully deleted' };
