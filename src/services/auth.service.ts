@@ -66,6 +66,7 @@ export const createUser = async (input: RegisterInput): Promise<RegisteredUser> 
       ...(bio ? { bio } : {}),
     },
     select: {
+      id: true,
       email: true,
       username: true,
       bio: true,
@@ -96,6 +97,7 @@ export const login = async (userPayload: any) => {
       email,
     },
     select: {
+      id: true,
       email: true,
       username: true,
       password: true,
@@ -109,6 +111,7 @@ export const login = async (userPayload: any) => {
 
     if (match) {
       return {
+        id: user.id,
         email: user.email,
         username: user.username,
         bio: user.bio,
@@ -131,6 +134,7 @@ export const getCurrentUser = async (id: number) => {
       id,
     },
     select: {
+      id: true,
       email: true,
       username: true,
       bio: true,
@@ -156,6 +160,7 @@ export const updateUser = async (userPayload: any, loggedInId: number) => {
       ...(bio ? { bio } : {}),
     },
     select: {
+      id: true,
       email: true,
       username: true,
       bio: true,
@@ -208,11 +213,11 @@ export const updatePassword = async (userPayload: any, loggedInId: number) => {
     where: { id: loggedInId },
     data: { password: hashedPassword },
     select: {
+      id: true,
       email: true,
       username: true,
       bio: true,
       image: true,
-      id: true,
     },
   });
 
@@ -237,11 +242,11 @@ export const updateImage = async (userPayload: any, loggedInId: number) => {
       ...(image ? { image } : {}),
     },
     select: {
+      id: true,
       email: true,
       username: true,
       bio: true,
       image: true,
-      id: true,
     },
   });
 

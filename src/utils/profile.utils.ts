@@ -8,6 +8,7 @@ const profileMapper = (user: any, username: string | undefined): Profile => ({
   following: username
     ? user?.followedBy.some((followingUser: Partial<User>) => followingUser.username === username)
     : false,
+  isMe: username === user.username,
 });
 
 export default profileMapper;
