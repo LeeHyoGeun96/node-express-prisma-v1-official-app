@@ -35,7 +35,7 @@
     "realworld"
   ],
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "node ./prisma/seed.js"
   },
   "author": {
     "name": "Gerome Grignon",
