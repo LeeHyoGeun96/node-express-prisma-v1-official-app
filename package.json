@@ -12,8 +12,8 @@
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",
     "prisma:generate:watch": "prisma generate --watch",
-    "prisma:seed": "node ./prisma/seed.js",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "node prisma/seed.js",
     "prisma:reset": "prisma migrate reset",
     "prettier:write": "npx prettier --write .",
     "prettier:check": "npx prettier --check .",
@@ -34,9 +34,6 @@
     "prisma",
     "realworld"
   ],
-  "prisma": {
-    "seed": "node ./prisma/seed.js"
-  },
   "author": {
     "name": "Gerome Grignon",
     "email": "gerome.grignon.lp2@gmail.com"
