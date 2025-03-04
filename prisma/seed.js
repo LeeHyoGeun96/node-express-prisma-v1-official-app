@@ -39,11 +39,9 @@ async function main() {
       },
     ];
 
-    const createdUsers = [];
-    for (const userData of usersData) {
-      const user = await prisma.user.create({ data: userData });
-      createdUsers.push(user);
-    }
+    const createdUsers = await Promise.all(
+      usersData.map(userData => prisma.user.create({ data: userData })),
+    );
 
     // 태그 생성
     console.log('Creating tags...');
@@ -60,41 +58,36 @@ async function main() {
       'Sports',
     ];
 
-    const createdTags = [];
-    for (const name of tagNames) {
-      const tag = await prisma.tag.create({ data: { name } });
-      createdTags.push(tag);
-    }
+    const createdTags = await Promise.all(
+      tagNames.map(name => prisma.tag.create({ data: { name } })),
+    );
 
     // 게시글 생성 (한 번에 5개씩)
     console.log('Creating articles...');
     for (let i = 1; i <= 30; i += 5) {
-      const batchPromises = [];
-
-      for (let j = i; j < i + 5 && j <= 30; j++) {
+      const batchPromises = Array.from({ length: Math.min(5, 31 - i) }, (_, index) => {
+        const j = i + index;
         const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
         const slug = `article-${j}-${Math.floor(Math.random() * 10000)}`;
 
         const tagCount = Math.floor(Math.random() * 3) + 1;
         const randomTags = [...createdTags].sort(() => 0.5 - Math.random()).slice(0, tagCount);
 
-        batchPromises.push(
-          prisma.article.create({
-            data: {
-              slug: slug,
-              title: `Article Title ${j}`,
-              description: `This is the description for article ${j}.`,
-              body: `This is the detailed body content of article ${j}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
-              author: {
-                connect: { id: randomUser.id },
-              },
-              tagList: {
-                connect: randomTags.map(tag => ({ id: tag.id })),
-              },
+        return prisma.article.create({
+          data: {
+            slug,
+            title: `Article Title ${j}`,
+            description: `This is the description for article ${j}.`,
+            body: `This is the detailed body content of article ${j}. Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+            author: {
+              connect: { id: randomUser.id },
             },
-          }),
-        );
-      }
+            tagList: {
+              connect: randomTags.map(tag => ({ id: tag.id })),
+            },
+          },
+        });
+      });
 
       await Promise.all(batchPromises);
       console.log(`Created articles ${i} to ${Math.min(i + 4, 30)}`);
