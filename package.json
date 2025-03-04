@@ -22,7 +22,11 @@
     "prepare": "husky install",
     "build": "tsc --skipLibCheck",
     "migrate:reset": "prisma migrate reset --force",
-    "db:reset": "prisma db push --force-reset"
+    "db:reset": "prisma db push --force-reset",
+    "migrate:deploy": "prisma migrate deploy",
+    "deploy": "npm run migrate:deploy && npm run prisma:seed",
+    "postdeploy": "npm run prisma:seed",
+    "start:railway": "npm run migrate:deploy && npm run prisma:seed && npm start"
   },
   "keywords": [
     "node",
@@ -30,6 +34,9 @@
     "prisma",
     "realworld"
   ],
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "author": {
     "name": "Gerome Grignon",
     "email": "gerome.grignon.lp2@gmail.com"
